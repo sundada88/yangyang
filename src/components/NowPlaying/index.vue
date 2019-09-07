@@ -1,54 +1,110 @@
 <template>
-  <div class="movie_body">
-    <ul>
-      <li
-        v-for="(item, index) in movieList"
-        :key="index"
-      >
-        <div class="pic_show">
-          <img :src="item.img | setWH('128.180')">
-        </div>
-        <div class="info_list">
-          <h2>{{item.nm}}
-            <img
-              v-if="item.version"
-              src="@/assets/maxs.png"
-              alt=""
-            ></h2>
-          <p>观众评分：<span class="grade">{{item.sc}}</span></p>
-          <p>主演：{{item.star}}</p>
-          <p>{{item.showInfo}}</p>
-        </div>
-        <div class="btn_mall">
-          购票
-        </div>
-      </li>
-    </ul>
-
+  <div
+    class="movie_body"
+    ref="movie_body"
+  >
+    <Scroller
+      @handleToScroll="handleToScroll"
+      @handleToScrollEnd="handleToScrollEnd"
+    >
+      <ul>
+        <li class="pullDown">{{pullDownMsg}}</li>
+        <li
+          v-for="(item, index) in movieList"
+          :key="index"
+        >
+          <div
+            class="pic_show"
+            @tap="handleToDetail"
+          >
+            <img :src="item.img | setWH('128.180')">
+          </div>
+          <div class="info_list">
+            <h2>{{item.nm}}
+              <img
+                v-if="item.version"
+                src="@/assets/maxs.png"
+                alt=""
+              ></h2>
+            <p>观众评分：<span class="grade">{{item.sc}}</span></p>
+            <p>主演：{{item.star}}</p>
+            <p>{{item.showInfo}}</p>
+          </div>
+          <div class="btn_mall">
+            购票
+          </div>
+        </li>
+      </ul>
+    </Scroller>
   </div>
 </template>
 
 <script>
+// import Bscroll from 'better-scroll'
 export default {
   name: 'nowplaying',
   data () {
     return {
-      movieList: []
+      movieList: [],
+      pullDownMsg: ''
     }
   },
   methods: {
-    // cancelRequest () {
-    //   if (typeof this.source === 'function') {
-    //     this.source('终止要求')
-    //   }
-    // }
+    handleToDetail () {
+      window.console.log(111111111111)
+    },
+    handleToScroll (pos) {
+      if (pos.y > 30) {
+        this.pullDownMsg = '正在更新中'
+      }
+    },
+    handleToScrollEnd (pos) {
+      if (pos.y > 30) {
+        this.$axios.get('/api/movieOnInfoList?cityId=11').then(res => {
+          var { msg } = res.data
+          if (msg === 'ok') {
+            this.pullDownMsg = '更新成功'
+            setTimeout(() => {
+              this.movieList = res.data.data.movieList
+              this.pullDownMsg = ''
+            }, 1000);
+
+          }
+        })
+      }
+    }
   },
   mounted () {
-
     this.$axios.get('/api/movieOnInfoList?cityId=10').then(res => {
       const { msg } = res.data
       if (msg === 'ok') {
         this.movieList = res.data.data.movieList
+        // this.$nextTick(() => {
+        //   let scroll = new Bscroll(this.$refs.movie_body, {
+        //     tap: true,
+        //     probeType: 1
+        //   })
+        //   scroll.on('scroll', (pos) => {
+        //     if (pos.y > 30) {
+        //       this.pullDownMsg = '正在更新中'
+        //     }
+        //   })
+        //   scroll.on('touchEnd', (pos) => {
+        //     if (pos.y > 30) {
+        //       this.$axios.get('/api/movieOnInfoList?cityId=11').then(res => {
+        //         var { msg } = res.data
+        //         if (msg === 'ok') {
+        //           this.pullDownMsg = '更新成功'
+        //           setTimeout(() => {
+        //             this.movieList = res.data.data.movieList
+        //             this.pullDownMsg = ''
+        //           }, 1000);
+
+        //         }
+        //       })
+        //     }
+        //   })
+        // })
       }
     })
   }

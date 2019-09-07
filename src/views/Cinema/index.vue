@@ -13,7 +13,9 @@
           特色 <i class="iconfont icon-lower-triangle"></i>
         </div>
       </div>
+      <!-- <Scroller> -->
       <CiList></CiList>
+      <!-- </Scroller> -->
     </div>
     <Tabbar></Tabbar>
   </div>

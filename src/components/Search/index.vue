@@ -60,7 +60,6 @@ export default {
       this.cancelRequest()
       this.$axios.get(`/api/searchList?cityId=10&kw=${newVal}`, {
         cancelToken: new this.$axios.CancelToken((c) => {
-          window.console.log(111111111111111)
           this.source = c
         })
       }).then(res => {
@@ -70,6 +69,8 @@ export default {
           window.console.log(res.data.data.movies.list)
           this.moviesList = res.data.data.movies.list
           window.console.log(this.moviesList)
+        } else {
+          this.moviesList = []
         }
       }).catch(err => {
         if (this.$axios.isCancel(err)) {
