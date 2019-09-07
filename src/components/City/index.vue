@@ -4,17 +4,26 @@
       <div class="city_hot">
         <h2>热门城市</h2>
         <ul class="clearfix">
-          <li>上海</li>
+          <li
+            v-for="(item, index) in hotCity"
+            :key="index"
+          >{{item.nm}}</li>
         </ul>
       </div>
-      <div class="city_sort">
-        <div>
-          <h2>A</h2>
+      <div
+        class="city_sort"
+        ref='city_sort'
+      >
+        <div
+          v-for="(items, index) in cityList"
+          :key="index"
+        >
+          <h2>{{items.index}}</h2>
           <ul>
-            <li>阿拉善盟</li>
-            <li>鞍山</li>
-            <li>安庆</li>
-            <li>安阳</li>
+            <li
+              v-for="item in items.list"
+              :key="item.nm"
+            >{{item.nm}}</li>
           </ul>
         </div>
       </div>
@@ -22,11 +31,11 @@
 
     <div class="city_index">
       <ul>
-        <li>A</li>
-        <li>B</li>
-        <li>C</li>
-        <li>D</li>
-        <li>E</li>
+        <li
+          v-for="(items, index) in cityList"
+          :key="index"
+          @touchstart="handleIndex(index)"
+        >{{items.index}}</li>
       </ul>
     </div>
   </div>
@@ -34,7 +43,73 @@
 
 <script>
 export default {
-  name: 'city'
+  name: 'city',
+  data () {
+    return {
+      cityList: [],
+      hotCity: []
+    }
+  },
+  methods: {
+    //  判断是否已经在城市列表中
+    isHere (firstLetter, list) {
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].index === firstLetter) {
+          return false
+        }
+      }
+      return true
+    },
+    // 获取城市列表
+    getCities (cities) {
+      const cityList = []
+      // 热门城市列表
+      const hotCity = []
+      cities.forEach(city => {
+        if (city.isHot === 1) {
+          hotCity.push(city)
+        }
+        if (this.isHere(city.py.slice(0, 1).toUpperCase(), cityList)) {
+          cityList.push({
+            index: city.py.slice(0, 1).toUpperCase(),
+            list: [{ ...city }]
+          })
+        } else {
+          cityList.forEach(item => {
+            if (item.index === city.py.slice(0, 1).toUpperCase()) {
+              item.list.push(city)
+            }
+          })
+        }
+      })
+      cityList.sort((item1, item2) => {
+        if (item1.index < item2.index) {
+          return -1
+        }
+      })
+      return {
+        hotCity,
+        cityList
+      }
+    },
+    // 根据索引跳转
+    handleIndex (index) {
+      let h2 = this.$refs.city_sort.getElementsByTagName('h2')
+      this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop
+    }
+  },
+  mounted () {
+    this.$axios.get('/api/cityList').then(res => {
+      const { data: { msg } } = res
+      if (msg === 'ok') {
+        const { data: { data: { cities } } } = res
+        // 城市列表
+        this.cityList = this.getCities(cities).cityList
+        // 热门城市
+        this.hotCity = this.getCities(cities).hotCity
+      }
+    })
+  }
 }
 </script>
 
@@ -107,6 +182,7 @@ export default {
       justify-content: center;
       text-align: center;
       border-left: 1px #e6e6e6 solid;
+      font-size: 12px;
     }
   }
 }
