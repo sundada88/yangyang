@@ -1,6 +1,7 @@
 <template>
   <div class="movie_body">
-    <Scroller>
+    <loading v-if="isLoading"></loading>
+    <Scroller v-else>
       <ul>
         <li
           v-for="(item, index) in comingList"
@@ -34,16 +35,33 @@ export default {
   name: 'comingsoon',
   data () {
     return {
-      comingList: []
+      comingList: [],
+      isLoading: true,
+      preCity: -1
     }
   },
+  methods: {
+    getComingList () {
+      if (this.$store.state.city.id === this.preCity) { return }
+      this.isLoading = true
+      this.$axios.get(`/api/movieComingList?cityId=${this.$store.state.city.id}`).then(res => {
+        const { msg } = res.data
+        if (msg === 'ok') {
+          this.comingList = res.data.data.comingList
+          this.isLoading = false
+          this.preCity = this.$store.state.city.id
+        }
+      })
+    }
+  },
+  activated () {
+    if (this.preCity === -1) {
+      return
+    }
+    this.getComingList()
+  },
   mounted () {
-    this.$axios.get('/api/movieComingList?cityId=10').then(res => {
-      const { msg } = res.data
-      if (msg === 'ok') {
-        this.comingList = res.data.data.comingList
-      }
-    })
+    this.getComingList()
   }
 }
 </script>

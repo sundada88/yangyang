@@ -3,7 +3,9 @@
     class="movie_body"
     ref="movie_body"
   >
+    <loading v-if="isLoading"></loading>
     <Scroller
+      v-else
       @handleToScroll="handleToScroll"
       @handleToScrollEnd="handleToScrollEnd"
     >
@@ -46,7 +48,9 @@ export default {
   data () {
     return {
       movieList: [],
-      pullDownMsg: ''
+      pullDownMsg: '',
+      isLoading: true,
+      preCity: -1 // 用来判断是否在activted的时候记性再次axios请求
     }
   },
   methods: {
@@ -60,53 +64,39 @@ export default {
     },
     handleToScrollEnd (pos) {
       if (pos.y > 30) {
-        this.$axios.get('/api/movieOnInfoList?cityId=11').then(res => {
+        this.$axios.get(`/api/movieOnInfoList?cityId=${this.$store.state.city.id}`).then(res => {
           var { msg } = res.data
           if (msg === 'ok') {
             this.pullDownMsg = '更新成功'
             setTimeout(() => {
               this.movieList = res.data.data.movieList
               this.pullDownMsg = ''
-            }, 1000);
-
+            }, 1000)
           }
         })
       }
+    },
+    getMovieList () {
+      if (this.$store.state.city.id === this.preCity) { return }
+      this.isLoading = true
+      this.$axios.get(`/api/movieOnInfoList?cityId=${this.$store.state.city.id}`).then(res => {
+        const { msg } = res.data
+        if (msg === 'ok') {
+          this.movieList = res.data.data.movieList
+          this.isLoading = false
+          this.preCity = this.$store.state.city.id
+        }
+      })
     }
   },
+  activated () {
+    if (this.preCity === -1) {
+      return
+    }
+    this.getMovieList()
+  },
   mounted () {
-    this.$axios.get('/api/movieOnInfoList?cityId=10').then(res => {
-      const { msg } = res.data
-      if (msg === 'ok') {
-        this.movieList = res.data.data.movieList
-        // this.$nextTick(() => {
-        //   let scroll = new Bscroll(this.$refs.movie_body, {
-        //     tap: true,
-        //     probeType: 1
-        //   })
-        //   scroll.on('scroll', (pos) => {
-        //     if (pos.y > 30) {
-        //       this.pullDownMsg = '正在更新中'
-        //     }
-        //   })
-        //   scroll.on('touchEnd', (pos) => {
-        //     if (pos.y > 30) {
-        //       this.$axios.get('/api/movieOnInfoList?cityId=11').then(res => {
-        //         var { msg } = res.data
-        //         if (msg === 'ok') {
-        //           this.pullDownMsg = '更新成功'
-        //           setTimeout(() => {
-        //             this.movieList = res.data.data.movieList
-        //             this.pullDownMsg = ''
-        //           }, 1000);
-
-        //         }
-        //       })
-        //     }
-        //   })
-        // })
-      }
-    })
+    this.getMovieList()
   }
 }
 </script>

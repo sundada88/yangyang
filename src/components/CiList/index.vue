@@ -1,6 +1,7 @@
 <template>
   <div class="cinema_body">
-    <Scroller>
+    <loading v-if="isloading"></loading>
+    <Scroller v-else>
       <ul>
         <li
           v-for="item in cinemas"
@@ -65,17 +66,36 @@ export default {
   },
   data () {
     return {
-      cinemas: []
+      cinemas: [],
+      isloading: true,
+      preCity: -1
     }
   },
-  mounted () {
-    this.$axios.get('/api/cinemaList?cityId=10').then(res => {
-      window.console.log(res)
-      const { msg, data: { cinemas } } = res.data
-      if (msg === 'ok' && cinemas) {
-        this.cinemas = cinemas
+  methods: {
+    getCinemas () {
+      if (this.$store.state.city.id === this.preCity) {
+        return
       }
-    })
+      this.isloading = true
+      this.$axios.get(`/api/cinemaList?cityId=${this.$store.state.city.id}`).then(res => {
+        window.console.log(res)
+        const { msg, data: { cinemas } } = res.data
+        if (msg === 'ok' && cinemas) {
+          this.cinemas = cinemas
+          this.isloading = false
+          this.preCity = this.$store.state.city.id
+        }
+      })
+    }
+  },
+  activated () {
+    if (this.preCity === -1) {
+      return
+    }
+    this.getCinemas()
+  },
+  mounted () {
+    this.getCinemas()
   }
 }
 </script>

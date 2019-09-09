@@ -58,7 +58,7 @@ export default {
     message (newVal) {
       // console.log(newVal)
       this.cancelRequest()
-      this.$axios.get(`/api/searchList?cityId=10&kw=${newVal}`, {
+      this.$axios.get(`/api/searchList?cityId=${this.$store.state.city.id}&kw=${newVal}`, {
         cancelToken: new this.$axios.CancelToken((c) => {
           this.source = c
         })

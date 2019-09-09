@@ -1,7 +1,11 @@
 <template>
   <div class="city_body">
     <div class="city_list">
-      <Scroller ref="scroller">
+      <loading v-if="isloading"></loading>
+      <Scroller
+        v-else
+        ref="scroller"
+      >
         <div>
           <div class="city_hot">
             <h2>热门城市</h2>
@@ -9,6 +13,7 @@
               <li
                 v-for="(item, index) in hotCity"
                 :key="index"
+                @tap="changeCity(item)"
               >{{item.nm}}</li>
             </ul>
           </div>
@@ -25,6 +30,7 @@
                 <li
                   v-for="item in items.list"
                   :key="item.nm"
+                  @tap="changeCity(item)"
                 >{{item.nm}}</li>
               </ul>
             </div>
@@ -52,10 +58,18 @@ export default {
   data () {
     return {
       cityList: [],
-      hotCity: []
+      hotCity: [],
+      isloading: true
     }
   },
   methods: {
+    // 改变城市
+    changeCity (city) {
+      this.$store.commit('city/CITY_INFO', city)
+      this.$router.push('movie/nowplaying')
+      window.localStorage.setItem('cityName', city.nm)
+      window.localStorage.setItem('cityId', city.id)
+    },
     //  判断是否已经在城市列表中
     isHere (firstLetter, list) {
       for (var i = 0; i < list.length; i++) {
@@ -105,16 +119,25 @@ export default {
     }
   },
   mounted () {
-    this.$axios.get('/api/cityList').then(res => {
-      const { data: { msg } } = res
-      if (msg === 'ok') {
-        const { data: { data: { cities } } } = res
-        // 城市列表
-        this.cityList = this.getCities(cities).cityList
-        // 热门城市
-        this.hotCity = this.getCities(cities).hotCity
-      }
-    })
+    if (window.localStorage.getItem('cityList') && window.localStorage.getItem('hotCity')) {
+      this.cityList = JSON.parse(window.localStorage.getItem('cityList'))
+      this.hotCity = JSON.parse(window.localStorage.getItem('hotCity'))
+      this.isloading = false
+    } else {
+      this.$axios.get('/api/cityList').then(res => {
+        const { data: { msg } } = res
+        if (msg === 'ok') {
+          this.isloading = false
+          const { data: { data: { cities } } } = res
+          // 城市列表
+          this.cityList = this.getCities(cities).cityList
+          // 热门城市
+          this.hotCity = this.getCities(cities).hotCity
+          window.localStorage.setItem('cityList', JSON.stringify(this.cityList))
+          window.localStorage.setItem('hotCity', JSON.stringify(this.hotCity))
+        }
+      })
+    }
   }
 }
 </script>
