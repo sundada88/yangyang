@@ -7,11 +7,14 @@
           v-for="(item, index) in comingList"
           :key="index"
         >
-          <div class="pic_show">
+          <div
+            class="pic_show"
+            @tap="handleToDetail(item.id)"
+          >
             <img :src="item.img | setWH('128.180')">
           </div>
           <div class="info_list">
-            <h2>{{item.nm}}
+            <h2 @tap="handleToDetail(item.id)">{{item.nm}}
               <img
                 v-if="item.version"
                 src="@/assets/maxs.png"
@@ -52,6 +55,9 @@ export default {
           this.preCity = this.$store.state.city.id
         }
       })
+    },
+    handleToDetail (movieId) {
+      this.$router.push(`/movie/detail/2/${movieId}`)
     }
   },
   activated () {

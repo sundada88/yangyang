@@ -17,12 +17,12 @@
         >
           <div
             class="pic_show"
-            @tap="handleToDetail"
+            @tap="handleToDetail(item.id)"
           >
             <img :src="item.img | setWH('128.180')">
           </div>
           <div class="info_list">
-            <h2>{{item.nm}}
+            <h2 @tap="handleToDetail(item.id)">{{item.nm}}
               <img
                 v-if="item.version"
                 src="@/assets/maxs.png"
@@ -54,8 +54,8 @@ export default {
     }
   },
   methods: {
-    handleToDetail () {
-      window.console.log(111111111111)
+    handleToDetail (movieId) {
+      this.$router.push(`/movie/detail/1/${movieId}`)
     },
     handleToScroll (pos) {
       if (pos.y > 30) {

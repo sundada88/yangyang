@@ -9,7 +9,7 @@ import loading from '@/components/Loading'
 Vue.config.productionTip = false
 Vue.prototype.$axios = axios
 Vue.filter('setWH', (url, arg) => {
-  return url.replace(/w\.h/, arg)
+  return url ? url.replace(/w\.h/, arg) : ''
 })
 
 Vue.component(scroller.name, scroller)
