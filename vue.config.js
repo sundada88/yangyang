@@ -1,4 +1,5 @@
 module.exports = {
+  // publicPath: 'yangyang',
   devServer: {
     proxy: {
       '/api': {

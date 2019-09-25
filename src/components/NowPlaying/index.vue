@@ -3,39 +3,46 @@
     class="movie_body"
     ref="movie_body"
   >
-    <loading v-if="isLoading"></loading>
     <Scroller
-      v-else
       @handleToScroll="handleToScroll"
       @handleToScrollEnd="handleToScrollEnd"
     >
       <ul>
         <li class="pullDown">{{pullDownMsg}}</li>
-        <li
-          v-for="(item, index) in movieList"
-          :key="index"
+        <transition-group
+          @before-enter="beforeEnter"
+          @enter="enter"
+          @after-enter="afterEnter"
         >
-          <div
-            class="pic_show"
-            @tap="handleToDetail(item.id)"
+          <li
+            v-for="(item, index) in movieList"
+            :key="index"
+            :data-delay=index*50
+            data-y="100%"
+            hoverclass="hoverclass"
           >
-            <img :src="item.img | setWH('128.180')">
-          </div>
-          <div class="info_list">
-            <h2 @tap="handleToDetail(item.id)">{{item.nm}}
-              <img
-                v-if="item.version"
-                src="@/assets/maxs.png"
-                alt=""
-              ></h2>
-            <p>观众评分：<span class="grade">{{item.sc}}</span></p>
-            <p>主演：{{item.star}}</p>
-            <p>{{item.showInfo}}</p>
-          </div>
-          <div class="btn_mall">
-            购票
-          </div>
-        </li>
+            <div
+              class="pic_show"
+              @tap="handleToDetail(item.id)"
+            >
+              <img :src="item.img | setWH('128.180')">
+            </div>
+            <div class="info_list">
+              <h2 @tap="handleToDetail(item.id)">{{item.nm}}
+                <img
+                  v-if="item.version"
+                  src="@/assets/maxs.png"
+                  alt=""
+                ></h2>
+              <p>观众评分：<span class="grade">{{item.sc}}</span></p>
+              <p>主演：{{item.star}}</p>
+              <p>{{item.showInfo}}</p>
+            </div>
+            <div class="btn_mall">
+              购票
+            </div>
+          </li>
+        </transition-group>
       </ul>
     </Scroller>
   </div>
@@ -49,11 +56,33 @@ export default {
     return {
       movieList: [],
       pullDownMsg: '',
-      isLoading: true,
+      // isLoading: true,
       preCity: -1 // 用来判断是否在activted的时候记性再次axios请求
     }
   },
   methods: {
+    beforeEnter (dom) {
+      let { x = 0, y = 0, opacity = 0 } = dom.dataset
+      dom.style.cssText = `
+        transition: transform 300ms;opacity: ${opacity};transform: translate(${x}, ${y}) scale(1);
+      `
+    },
+    enter (dom, done) {
+      let { delay } = dom.dataset
+      setTimeout(() => {
+        dom.style.cssText = `
+          transition: transfor, 300ms;opacity: 1;transform" translate(0, 0) scale(1);
+        `
+        let transition = window.ontransitionend ? 'transitionend' : 'webkitTransition'
+        dom.addEventListener(transition, function onEnd () {
+          dom.removeEventListener(transition, onEnd)
+          done()
+        })
+      }, delay)
+    },
+    afterEnter (dom) {
+      dom.style.cssText = ''
+    },
     handleToDetail (movieId) {
       this.$router.push(`/movie/detail/1/${movieId}`)
     },
@@ -78,12 +107,12 @@ export default {
     },
     getMovieList () {
       if (this.$store.state.city.id === this.preCity) { return }
-      this.isLoading = true
+      // this.isLoading = true
       this.$axios.get(`/api/movieOnInfoList?cityId=${this.$store.state.city.id}`).then(res => {
         const { msg } = res.data
         if (msg === 'ok') {
           this.movieList = res.data.data.movieList
-          this.isLoading = false
+          // this.isLoading = false
           this.preCity = this.$store.state.city.id
         }
       })
@@ -96,6 +125,9 @@ export default {
     this.getMovieList()
   },
   mounted () {
+    // this.$axios.get('/nodeApi', (res) => {
+    //   window.console.log(res)
+    // })
     this.getMovieList()
   }
 }
@@ -107,10 +139,13 @@ export default {
     flex: 1;
     overflow: auto;
     ul {
-      margin: 0 12px;
       overflow: hidden;
+      .hoverclass {
+        background: rgba(106, 182, 252, 0.1) !important;
+      }
       li {
-        margin-top: 12px;
+        padding: 0 12px;
+        padding-top: 12px;
         display: flex;
         align-items: center;
         border-bottom: 1px #e6e6e6 solid;
@@ -176,6 +211,8 @@ export default {
       margin: 0;
       padding: 0;
       border: none;
+      text-align: center;
+      display: block;
     }
   }
 }
