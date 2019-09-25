@@ -5,6 +5,7 @@ import store from './stores'
 import axios from 'axios'
 import scroller from '@/components/Scroller'
 import loading from '@/components/Loading'
+import '../public/js/window'
 
 Vue.config.productionTip = false
 Vue.prototype.$axios = axios
